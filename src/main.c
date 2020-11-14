@@ -64,8 +64,6 @@ void applyGravity(void);
 
 void movePipes(void);
 
-void fly(void);
-
 void flyLess(void);
 
 int detectCollision(BIRD *bird1, PIPE *pipe);
@@ -77,9 +75,27 @@ void drawBackground(const uint16_t *image);
 volatile int score = 0;
 
 BIRD ourBird;
+
+
 PIPE *pipes;
 PIPE *currentPipe;
 PIPE *nextPipe;
+
+PIPE* MallocPipe( size_t size )
+{
+    static PIPE pipeStore[ 3 ][ NUM_PIPES ] = {{{0}}};
+    static size_t ps_idx = 0;
+
+    (void)size;
+    PIPE *pipe = &pipeStore[ ps_idx ][ 0 ];
+    ps_idx++;
+    if( ps_idx >= 3 )
+    {
+        ps_idx = 0;
+    }
+
+    return pipe;
+}
 
 // main function, containing the main loop
 int main(void)
@@ -117,6 +133,7 @@ int main(void)
                 state = PLAY;
             }
             break;
+
         case PLAY:
             undrawBird( background );
             undrawPipes();
@@ -126,7 +143,10 @@ int main(void)
             {
                 if( upDownLastFrame )
                 {
-                    ourBird.col -= FLY_HEIGHT - 2;
+                    if( ourBird.col > FLY_HEIGHT - 2 )
+                    {
+                        ourBird.col -= FLY_HEIGHT - 2;
+                    }
                 }
                 else
                 {
@@ -143,23 +163,24 @@ int main(void)
             drawBird();
             drawPipes();
             break;
+
         case GAME_OVER:
             drawBackground( gameoverScreen );
-            char string[5];
+            char string[ 5 ];
             sprintf( string, "%d", score );
             drawString( 150, 68, string, WHITE );
             drawString(( SCREEN_WIDTH - calcStringWidth( "Press START to restart" )) / 2, 150,
-                    "Press START to restart",
-                    WHITE );
+                        "Press START to restart",
+                        WHITE );
             state = GAME_OVER_NO_DRAW;
             break;
+
         case GAME_OVER_NO_DRAW:
             if( KEY_DOWN_NOW(BUTTON_START) && !startDownLastFrame )
             {
                 state = START;
             }
             break;
-
         }
 
         if( KEY_DOWN_NOW( BUTTON_START ) )
@@ -187,19 +208,18 @@ int main(void)
             selectDownLastFrame = 0;
         }
     }
-
 }
 
 // reset the status of the game
 void reset(void)
 {
-    pipes = malloc( sizeof(PIPE) * NUM_PIPES );
+    pipes = MallocPipe( sizeof(PIPE) * NUM_PIPES );
     currentPipe = pipes;
 
     reGeneratePipes();
 
     ourBird.row = SCREEN_WIDTH / 6;
-    ourBird.col = SCREEN_HEIGHT / 2 - BIRD_HEIGHT / 2;
+    ourBird.col = ( SCREEN_HEIGHT - BIRD_HEIGHT ) / 2;
 
     score = 0;
 }
@@ -253,13 +273,13 @@ int checkAlive(void)
 // randomize a pipe
 void generatePipeHeight(PIPE *pipe)
 {
-    int baseHeight = PIPENECKBOTTOM_HEIGHT + 10;
+    int baseHeight = PIPENECKBOTTOM_HEIGHT + PIPENECKBOTTOM_HEIGHT;
     pipe->gapHeight = (BIRD_HEIGHT * 3) + rand() % (BIRD_HEIGHT * 4);
-    pipe->topHeight = rand() % (SCREEN_HEIGHT - pipe->gapHeight - baseHeight) + (baseHeight / 2);
+    pipe->topHeight = ( rand() % (SCREEN_HEIGHT - pipe->gapHeight - baseHeight)) + (baseHeight / 2);
 }
 
 // draw the bird
-void drawBird()
+void drawBird(void)
 {
     drawImage3( ourBird.row, ourBird.col, BIRD_WIDTH, BIRD_HEIGHT, bird );
 }
@@ -390,17 +410,18 @@ void undrawPipeRear(PIPE *pipe, const uint16_t *image)
 
 void applyGravity(void)
 {
-    ourBird.col += GRAVITY;
-}
-
-void fly(void)
-{
-    ourBird.col -= FLY_HEIGHT;
+    if(ourBird.col < SCREEN_HEIGHT - BIRD_HEIGHT )
+    {
+        ourBird.col += GRAVITY;
+    }
 }
 
 void flyLess(void)
 {
-    ourBird.col -= FLY_HEIGHT - 3;
+    if(ourBird.col < SCREEN_HEIGHT - BIRD_HEIGHT )
+    {
+        ourBird.col -= FLY_HEIGHT - 3;
+    }
 }
 
 // moves the pipes as game proceeds
@@ -408,7 +429,6 @@ void movePipes(void)
 {
     if( nextPipe != NULL && currentPipe->row + PIPENECKBOTTOM_WIDTH < 0 )
     {
-        free( pipes );
         pipes = nextPipe;
         currentPipe = nextPipe;
         reGeneratePipes();
@@ -430,7 +450,7 @@ void movePipes(void)
         {
             if( i == NUM_PIPES - 1 )
             {
-                nextPipe = malloc( sizeof(PIPE) * NUM_PIPES );
+                nextPipe = MallocPipe( sizeof(PIPE) * NUM_PIPES );
             }
             else
             {
