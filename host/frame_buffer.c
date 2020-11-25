@@ -156,7 +156,6 @@ void undrawImage3(int row, int col, int width, int height, const uint16_t *image
     }
 }
 
-bool print = false;
 /**
  * draw a partial image
  *
@@ -173,7 +172,7 @@ void drawImage3FromRow(int r, int c, int rowOffset, int width, int height, const
     {
         for( int row = rowOffset, pos = 0; row < width; ++row, ++pos )
         {
-            m->tft_fb[ c ][ r + pos ] = *( image + row );
+            m->tft_fb[ c + cnt ][ r + pos ] = *( image + row );
         }
         image += width;
     }

@@ -312,8 +312,8 @@ void drawPipe(PIPE *pipe)
         {
             drawImage3FromRow( 0,
                                i,
-                               -pipe->row - PIPE_MARGIN + 1,
-                               PIPEBODY_WIDTH + 1,
+                               -pipe->row - PIPE_MARGIN,
+                               PIPEBODY_WIDTH,
                                PIPEBODY_HEIGHT,
                                pipeBody );
         }
@@ -335,8 +335,8 @@ void drawPipe(PIPE *pipe)
         {
             drawImage3FromRow( 0,
                                i + pipe->topHeight + pipe->gapHeight + PIPENECKBOTTOM_HEIGHT,
-                               -pipe->row - PIPE_MARGIN + 1,
-                               PIPEBODY_WIDTH + 1,
+                               -pipe->row - PIPE_MARGIN,
+                               PIPEBODY_WIDTH,
                                PIPEBODY_HEIGHT,
                                pipeBody );
         }
